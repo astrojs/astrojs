@@ -125,7 +125,7 @@ class AstroJS
     strata.get '/specs.js', (env, callback) ->
       console.log ansi('\tbuilding specs', 'green')
       coffee = spawn('coffee', ['-c', '-o', 'test/specs', 'test/specs'])
-      coffee.stderr.on 'data', ->
+      coffee.stderr.on 'data', (data) ->
         process.stderr.write data.toString()
       coffee.stdout.on 'data', (data) ->
         console.log data.toString()
