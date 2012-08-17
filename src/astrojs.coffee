@@ -7,6 +7,7 @@ optimist  = require('optimist')
 {spawn}   = require('child_process')
 Template  = require('./template')
 ansi      = require('./ansi')
+groc      = require('groc')
 
 argv = optimist.usage([
   '  usage: astrojs COMMAND',
@@ -41,7 +42,9 @@ class AstroJS
     files = ['index.js', 'package.json', 'src', 'lib']
     root = process.cwd()
     for f in files
-      return false unless fd.existsSync(fd.join(root, f))
+      unless fd.existsSync(fd.join(root, f))
+        console.log ansi('\tastrojs must be run from within a project directory', 'red')
+        return false
     return true
   
   # Get the project name from package.json.  It is assumed this function is called from a project
@@ -56,7 +59,8 @@ class AstroJS
     
   
   constructor: ->
-    
+  
+  # Generate a new project template
   new: (name) ->
     template = __dirname + "/../templates/module"
     values =
@@ -92,6 +96,7 @@ class AstroJS
     path = fd.join('test', 'specs', "#{name}.coffee")
     (new Template(template, path, values)).write()
   
+  # Spin up a local server for testing
   server: ->
     console.log ansi('\tstarting server', 'green')
     name    = AstroJS.getProjectName()
@@ -146,6 +151,7 @@ class AstroJS
     strata.run
       port: port
   
+  # Build the project using Stitch (hence fast-detective) to resolve dependencies and concatentate files
   build: ->
     name = AstroJS.getProjectName()
     curdir = process.cwd()
@@ -170,6 +176,23 @@ class AstroJS
             fs.renameSync temp, main
             console.log ansi("\tcompiled #{name}", 'green')
   
+  # Generate documentation
+  docs: ->
+    # Check if in project directory
+    return unless AstroJS.inProjectDirectory()
+    
+    name = AstroJS.getProjectName()
+    console.log ansi("\tGenerating documentation for #{name}", 'green')
+    
+    grocJob = spawn('groc', ['README.md'])
+    # grocJob = spawn('groc', ['README.md', '"src/*.coffee"'])
+    grocJob.stderr.on "data", (data) ->
+      process.stderr.write data.toString()
+    grocJob.stdout.on 'data', (data) ->
+      console.log data.toString()
+    grocJob.on 'exit', (code) ->
+      console.log code
+  
   exec: (command = argv._[0]) ->
     name = argv._[1]
     switch command
@@ -183,6 +206,8 @@ class AstroJS
         @['server']()
       when 'build'
         @['build']()
+      when 'docs'
+        @['docs']()
       else
         help()
 
