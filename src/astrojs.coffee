@@ -114,7 +114,7 @@ class AstroJS
       console.log ansi('\tbuilding module', 'green')
       
       coffee = spawn('coffee', ['-c', '-o', 'lib', 'src'])
-      coffee.stderr.on 'data', ->
+      coffee.stderr.on 'data', (data) ->
         process.stderr.write data.toString()
       coffee.stdout.on "data", (data) ->
         console.log data.toString()
