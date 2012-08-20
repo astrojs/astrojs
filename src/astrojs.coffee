@@ -42,7 +42,7 @@ class AstroJS
     files = ['index.js', 'package.json', 'src', 'lib']
     root = process.cwd()
     for f in files
-      unless fd.existsSync(fd.join(root, f))
+      unless fs.existsSync(fd.join(root, f))
         console.log ansi('\tastrojs must be run from within a project directory', 'red')
         return false
     return true
@@ -69,7 +69,7 @@ class AstroJS
     name = fd.normalize(name)
 
     # Create parent dir
-    throw (name + " already exists") if fd.existsSync(name)
+    throw (name + " already exists") if fs.existsSync(name)
     fs.mkdirSync name, 0o0775
     (new Template(template, name, values)).write()
 
@@ -89,7 +89,7 @@ class AstroJS
     @klassSpec(name)
   
   klassSpec: (name) ->
-    return unless fd.existsSync(fd.join('test', 'specs'))
+    return unless fs.existsSync(fd.join('test', 'specs'))
     template = fd.join(__dirname, '..', 'templates', 'spec.class.coffee')
     values =
       name: AstroJS.camelize(fd.basename(name))
