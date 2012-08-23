@@ -184,14 +184,13 @@ class AstroJS
     name = AstroJS.getProjectName()
     console.log ansi("\tGenerating documentation for #{name}", 'green')
     
-    grocJob = spawn('groc', ['README.md'])
-    # grocJob = spawn('groc', ['README.md', '"src/*.coffee"'])
+    grocJob = spawn('groc', ['README.md', 'src/*.coffee'])
     grocJob.stderr.on "data", (data) ->
       process.stderr.write data.toString()
     grocJob.stdout.on 'data', (data) ->
       console.log data.toString()
     grocJob.on 'exit', (code) ->
-      console.log code
+      console.log ansi("\tcreated documention for #{name}", 'green')
   
   exec: (command = argv._[0]) ->
     name = argv._[1]

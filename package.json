@@ -1,13 +1,14 @@
 {
   "name": "astrojs",
-  "description": "astrojs module generator",
-  "version": "0.0.1",
+  "preferGlobal": "true",
+  "description": "Generate astrojs module templates with testing server, test suite, and documentation",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "git://github.com/astrojs/astrojs.app.git"
   },
   "author": "Amit Kapadia <amit@zooniverse.org>",
-  "bin": { "astrojs": "./bin/astrojs" },
+  "bin": {"astrojs": "./bin/astrojs"},
   "engines": {
     "node": "*"
   },
@@ -17,5 +18,6 @@
     "strata": "~0.15.1",
     "optimist": "~0.3.4",
     "groc": "~0.2.15"
-  }
+  },
+  "license": "MIT"
 } 
