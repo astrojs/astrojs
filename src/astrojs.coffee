@@ -1,7 +1,6 @@
 fs        = require('fs')
 fd        = require('path')
 cs        = require('coffee-script')
-stitch    = require('stitch')
 strata    = require('strata')
 optimist  = require('optimist')
 {spawn}   = require('child_process')
@@ -11,10 +10,10 @@ groc      = require('groc')
 
 argv = optimist.usage([
   '  usage: astrojs COMMAND',
-  '    new      create a new project template',
+  '    new      create a new astrojs project template',
   '    class    generate a class template and associated test template',
-  '    server   start a dynamic development server',
-  '    build    serialize application to disk'
+  '    server   start a local development server',
+  '    build    build the module (this is an alias for `cake build`)'
 ].join("\n"))
 .alias('p', 'port')
 .argv
@@ -56,9 +55,6 @@ class AstroJS
   
   @getDependencies: ->
     metadata = require(packagePath)
-    
-  
-  constructor: ->
   
   # Generate a new project template
   new: (name) ->
@@ -86,48 +82,33 @@ class AstroJS
       project: project
     path = fd.join('src', "#{name}.coffee")
     (new Template(template, path, values)).write()
-    @klassSpec(name)
+    @klassSpec(project, name)
   
-  klassSpec: (name) ->
+  klassSpec: (project, name) ->
     return unless fs.existsSync(fd.join('test', 'specs'))
     template = fd.join(__dirname, '..', 'templates', 'spec.class.coffee')
     values =
       name: AstroJS.camelize(fd.basename(name))
+      project: project
     path = fd.join('test', 'specs', "#{name}.coffee")
     (new Template(template, path, values)).write()
   
   # Spin up a local server for testing
-  server: ->
+  server: =>
     console.log ansi('\tstarting server', 'green')
     name    = AstroJS.getProjectName()
     curdir  = process.cwd()
     port    = if argv['port']? then argv['port'] else 8000
-
+    
     # Strata web server
     strata.use strata.commonLogger
     strata.use strata.contentType, 'text/html'
     strata.use strata.contentLength
     strata.use strata.file, curdir
-    
-    # Specify paths that will be accessed during development
-    strata.get '/module.js', (env, callback) ->
-      console.log ansi('\tbuilding module', 'green')
-      
-      coffee = spawn('coffee', ['-c', '-o', 'lib', 'src'])
-      coffee.stderr.on 'data', (data) ->
-        process.stderr.write data.toString()
-      coffee.stdout.on "data", (data) ->
-        console.log data.toString()
-      coffee.on 'exit', (code) ->
-        if code is 0
-          pkg = stitch.createPackage(paths: [fd.join(curdir, 'lib')])
-          pkg.compile (err, source) ->
-            throw err if err
-            callback 200,
-              'Content-Type': 'text/javascript'
-            , source
 
-    strata.get '/specs.js', (env, callback) ->
+    strata.get '/specs.js', (env, callback) =>
+      @build()  # Build module
+      
       console.log ansi('\tbuilding specs', 'green')
       coffee = spawn('coffee', ['-c', '-o', 'test/specs', 'test/specs'])
       coffee.stderr.on 'data', (data) ->
@@ -151,32 +132,10 @@ class AstroJS
     strata.run
       port: port
   
-  # Build the project using Stitch (hence fast-detective) to resolve dependencies and concatentate files
-  build: ->
-    name = AstroJS.getProjectName()
-    curdir = process.cwd()
-    
-    coffee = spawn('coffee', ['-c', '-o', 'lib', 'src'])
-    coffee.stderr.on "data", (data) ->
-      process.stderr.write data.toString()
-    coffee.stdout.on 'data', (data) ->
-      console.log data.toString()
-    coffee.on 'exit', (code) ->
-      if code is 0
-        main = fd.join(curdir, 'lib', "#{name}.js")
-        temp = fd.join(curdir, 'lib', "#{name}_tmp.js")
-        
-        # Call Stitch to handle dependencies and package library
-        pkg = stitch.createPackage
-          paths: [fd.join(curdir, 'lib')]
-        pkg.compile (err, source) ->
-          libpath = fd.join(curdir, 'lib', "#{name}_tmp.js")
-          fs.writeFile libpath, source, (err) ->
-            throw err if err
-            fs.renameSync temp, main
-            console.log ansi("\tcompiled #{name}", 'green')
+  # Build the project
+  build: -> spawn 'cake', ['build']
   
-  # Generate documentation
+  # Generate documentation using groc
   docs: ->
     # Check if in project directory
     return unless AstroJS.inProjectDirectory()

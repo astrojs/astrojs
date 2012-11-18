@@ -1,6 +1,5 @@
-require = window.require
 
 describe '{{name}}', ->
-  {{name}} = require('{{name}}')
+  {{name}} = astro.{{project}}.{{name}}
 
   it 'can noop', ->

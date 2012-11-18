@@ -1,6 +1,6 @@
+@astro = {} unless @astro?
 
-{{name}} = @{{name}} = {}
+{{name}} = {}
+{{name}}.version = '0.0.1'
 
-{{name}}.VERSION = '0.0.1'
-
-module?.exports = {{name}}
+@astro.{{name}} = {{name}}

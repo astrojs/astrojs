@@ -3,4 +3,4 @@ class {{name}}
   
   constructor: ->
 
-module?.exports = {{name}}
+@astro.{{project}}.{{name}} = {{name}}

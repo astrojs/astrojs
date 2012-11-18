@@ -2,7 +2,7 @@
   "name": "astrojs",
   "preferGlobal": "true",
   "description": "Generate astrojs module templates with testing server, test suite, and documentation",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/astrojs/astrojs.app.git"
@@ -13,11 +13,10 @@
     "node": "*"
   },
   "dependencies" : {
-    "coffee-script" : "~1.3.3",
-    "stitch": "~0.3.3",
-    "strata": "~0.15.1",
-    "optimist": "~0.3.4",
-    "groc": "~0.2.15"
+    "coffee-script" : "1.4.x",
+    "strata": "0.19.x",
+    "optimist": "0.3.x",
+    "groc": "0.3.x"
   },
   "license": "MIT"
-} 
+}
