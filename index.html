@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="README.md"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path">README.md</div></div><div id="document"><div class="segment"><div class="comments"><div class="wrapper"><h1 id="astrojs">astrojs</h1>
+
+<p>astrojs is a project to develop and consolidate javascript libraries for astronomical applications.  Similar to the <a href="http://www.astropy.org/">astropy</a> project, astrojs attempts to gather useful libraries under a single namespace so they may become shared resources to the astronomical community.  There are many codes floating around the web, which if they were consolidated in a central location, would be of much greater value.</p>
+
+<p>If you have a javascript resource that you would like to share, please contact <a href="amit@zooniverse.org">Amit Kapadia</a>.</p>
+
+<h2 id="astrojs-module">astrojs module</h2>
+
+<p>This module provides a scaffold and convenience functions for developing under the javascript astro namespace.  It is most useful when developing astrojs libraries using the <a href="coffeescript.org">coffeescript</a> language.  A future release will support development for pure javascript.  There are four functions available from the command line.</p>
+
+<pre><code>astrojs new [project name]
+astrojs class [class name]
+astrojs server
+astrojs build
+</code></pre>
+
+<h3 id="installation">installation</h3>
+
+<p>The astrojs module is built using <a href="http://nodejs.org/">NodeJS</a>.  Why Node?  Node is another flavor of javascript, javascript that runs server side.  A Node module may be developed and run in a similar why to any other scripting language, such as python.  As this is a javascript initiative, any utilities should be developed in javascript.  If Node is not installed, please refer to its documentation and <a href="http://nodejs.org/download/">downloads</a> page.</p>
+
+<p>Upon installation of Node a package manager called <a href="npmjs.org">NPM</a> will be available.  The astrojs module is available via the Node Packaged Modules service.  To install the astrojs module run</p>
+
+<pre><code>npm install astrojs -g
+</code></pre>
+
+<p>This will install astrojs globally, and it will function as a command line utility.  (It most likely needs to be run using sudo).</p>
+
+<h3 id="creating-an-astrojs-project">creating an astrojs project</h3>
+
+<p>To create an astrojs project run</p>
+
+<pre><code>astrojs new [project name]
+</code></pre>
+
+<p>This will generate the following project files under a directory named by <code>[project name]</code>:</p>
+
+<pre><code>Cakefile
+index.js
+lib/
+package.json
+README.md
+src/
+  |----[project name].coffee
+test/
+  |----favicon.ico
+  |----lib/jasmine-html.js
+  |----lib/jasmine.css
+  |----lib/jasmine.js
+  |----lib/MIT.LICENSE
+  |----SpecRunner.html
+  |----specs/
+</code></pre>
+
+<h3 id="generating-a-new-class">generating a new class</h3>
+
+<p>Javascript is a prototype-based language, however a class-like structure can be emulated using particular development patterns.  Use of this modules means that the developer is adopting a module pattern for library development.  Executing</p>
+
+<pre><code>astrojs new [class name]
+</code></pre>
+
+<p>from within an astrojs project directory will generate template code for a new class and test functions.</p>
+
+<h3 id="starting-a-local-development-server">starting a local development server</h3>
+
+<p>Development always requires testing.  When developing an astrojs module, it is encouraged to test all functionality.  Frequently a local testing server is needed.  Calling</p>
+
+<pre><code>astrojs server
+</code></pre>
+
+<p>will spin up a local testing server at <a href="http://0.0.0.0:8000">http://0.0.0.0:8000</a>.  This is useful when unit tests require data that must be accessed on the same domain as the script (e.g. ajax requests to json or binary files).</p>
+
+<h3 id="building-an-astrojs-project">building an astrojs project</h3>
+
+<p>This module encourages development to occur in a modular fashion.  Often development of libraries can quickly become overwhelming.  Good practice encourages codes to be modulated into separate files, however this requires a build step when delivering the final javascript library.  Calling</p>
+
+<pre><code>astrojs build
+</code></pre>
+
+<p>concatenates all files in the <code>src</code> directory, and provides the final product in the <code>lib</code> directory.  It is important to specify the dependency order using the key <code>_dependencyOrder</code> in package.json.</p>
+
+<h3 id="example">example</h3>
+
+<p>For an example of using this module for development, please refer to the <a href="https://github.com/astrojs/fitsjs">fitsjs</a> library.</p></div></div></div></div></body></html>

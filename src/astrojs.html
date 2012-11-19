@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head><title>src/astrojs</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="src/astrojs"><meta name="groc-project-path" content="src/astrojs.coffee"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">src/astrojs.coffee</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="nv">fs        = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">)</span>
+<span class="nv">fd        = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">)</span>
+<span class="nv">cs        = </span><span class="nx">require</span> <span class="s1">&#39;coffee-script&#39;</span>
+<span class="nv">strata    = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;strata&#39;</span><span class="p">)</span>
+<span class="nv">optimist  = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;optimist&#39;</span><span class="p">)</span>
+<span class="p">{</span><span class="nx">spawn</span><span class="p">}</span>   <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;child_process&#39;</span><span class="p">)</span>
+<span class="nv">Template  = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./template&#39;</span><span class="p">)</span>
+<span class="nv">ansi      = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./ansi&#39;</span><span class="p">)</span>
+<span class="nv">groc      = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;groc&#39;</span><span class="p">)</span>
+
+<span class="nv">argv = </span><span class="nx">optimist</span><span class="p">.</span><span class="nx">usage</span><span class="p">([</span>
+  <span class="s1">&#39;  usage: astrojs COMMAND&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;    new      create a new astrojs project template&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;    class    generate a class template and associated test template&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;    server   start a local development server&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;    build    build the module (this is an alias for `cake build`)&#39;</span>
+<span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">))</span>
+<span class="p">.</span><span class="nx">alias</span><span class="p">(</span><span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;port&#39;</span><span class="p">)</span>
+<span class="p">.</span><span class="nx">argv</span>
+
+<span class="nv">help = </span><span class="o">-&gt;</span>
+  <span class="nx">optimist</span><span class="p">.</span><span class="nx">showHelp</span><span class="p">()</span>
+  <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">()</span>
+  
+<span class="k">class</span> <span class="nx">AstroJS</span>
+  <span class="vi">@exec: </span><span class="nf">(command) -&gt;</span>
+    <span class="p">(</span><span class="k">new</span> <span class="err">@</span><span class="p">).</span><span class="nx">exec</span><span class="p">(</span><span class="nx">command</span><span class="p">)</span>
+  
+  <span class="vi">@expandPath: </span><span class="nf">(path, dir) -&gt;</span>
+    <span class="nv">path = </span><span class="nx">dir</span> <span class="o">+</span> <span class="nx">path</span> <span class="k">if</span> <span class="nx">fd</span><span class="p">.</span><span class="nx">basename</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="o">is</span> <span class="nx">path</span>
+    <span class="nx">fd</span><span class="p">.</span><span class="nx">normalize</span> <span class="nx">path</span>
+  
+  <span class="vi">@camelize: </span><span class="nf">(str) -&gt;</span>
+      <span class="nx">str</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/-|_+(.)?/g</span><span class="p">,</span> <span class="nf">(match, chr) -&gt;</span>
+        <span class="p">(</span><span class="k">if</span> <span class="nx">chr</span> <span class="k">then</span> <span class="nx">chr</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+      <span class="p">).</span><span class="nx">replace</span> <span class="sr">/^(.)?/</span><span class="p">,</span> <span class="nf">(match, chr) -&gt;</span>
+        <span class="p">(</span><span class="k">if</span> <span class="nx">chr</span> <span class="k">then</span> <span class="nx">chr</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Check if in project directory</p></div></div><div class="code"><div class="wrapper">  <span class="vi">@inProjectDirectory: </span><span class="o">-&gt;</span>
+    <span class="nv">files = </span><span class="p">[</span><span class="s1">&#39;index.js&#39;</span><span class="p">,</span> <span class="s1">&#39;package.json&#39;</span><span class="p">,</span> <span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="s1">&#39;lib&#39;</span><span class="p">]</span>
+    <span class="nv">root = </span><span class="nx">process</span><span class="p">.</span><span class="nx">cwd</span><span class="p">()</span>
+    <span class="k">for</span> <span class="nx">f</span> <span class="k">in</span> <span class="nx">files</span>
+      <span class="nx">unless</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">existsSync</span><span class="p">(</span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="nx">f</span><span class="p">))</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">ansi</span><span class="p">(</span><span class="s1">&#39;\tastrojs must be run from within a project directory&#39;</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">false</span>
+    <span class="k">return</span> <span class="kc">true</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get the project name from package.json.  It is assumed this function is called from a project
+directory.</p></div></div><div class="code"><div class="wrapper">  <span class="vi">@getProjectName: </span><span class="o">-&gt;</span>
+    <span class="nv">packagePath = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">process</span><span class="p">.</span><span class="nx">cwd</span><span class="p">(),</span> <span class="s2">&quot;package&quot;</span><span class="p">)</span>
+    <span class="nv">metadata = </span><span class="nx">require</span><span class="p">(</span><span class="nx">packagePath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nx">metadata</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+  
+  <span class="vi">@getDependencies: </span><span class="o">-&gt;</span>
+    <span class="nv">metadata = </span><span class="nx">require</span><span class="p">(</span><span class="nx">packagePath</span><span class="p">)</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Generate a new project template</p></div></div><div class="code"><div class="wrapper">  <span class="k">new</span><span class="o">:</span> <span class="nf">(name) -&gt;</span>
+    <span class="nv">template = </span><span class="nx">__dirname</span> <span class="o">+</span> <span class="s2">&quot;/../templates/module&quot;</span>
+    <span class="nv">values =</span>
+      <span class="nv">name: </span><span class="nx">AstroJS</span><span class="p">.</span><span class="nx">camelize</span> <span class="nx">fd</span><span class="p">.</span><span class="nx">basename</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+      
+    <span class="nv">name = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">normalize</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Create parent dir</p></div></div><div class="code"><div class="wrapper">    <span class="k">throw</span> <span class="p">(</span><span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot; already exists&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">existsSync</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">mkdirSync</span> <span class="nx">name</span><span class="p">,</span> <span class="mi">0</span><span class="nx">o0775</span>
+    <span class="p">(</span><span class="k">new</span> <span class="nx">Template</span><span class="p">(</span><span class="nx">template</span><span class="p">,</span> <span class="nx">name</span><span class="p">,</span> <span class="nx">values</span><span class="p">)).</span><span class="nx">write</span><span class="p">()</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Rename module.coffee to the package name</p></div></div><div class="code"><div class="wrapper">    <span class="nv">main = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">,</span> <span class="s2">&quot;main.coffee&quot;</span><span class="p">)</span>
+    <span class="nv">proj = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">,</span> <span class="nx">values</span><span class="p">.</span><span class="nx">name</span> <span class="o">+</span> <span class="s2">&quot;.coffee&quot;</span><span class="p">)</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">rename</span> <span class="nx">main</span><span class="p">,</span> <span class="nx">proj</span>
+  
+  <span class="nv">klass: </span><span class="nf">(name) -&gt;</span>
+    <span class="nv">template = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;templates&#39;</span><span class="p">,</span> <span class="s1">&#39;class.coffee&#39;</span><span class="p">)</span>
+    <span class="nv">project = </span><span class="nx">AstroJS</span><span class="p">.</span><span class="nx">getProjectName</span><span class="p">()</span>
+    <span class="nv">values =</span>
+      <span class="nv">name: </span><span class="nx">AstroJS</span><span class="p">.</span><span class="nx">camelize</span><span class="p">(</span><span class="nx">fd</span><span class="p">.</span><span class="nx">basename</span><span class="p">(</span><span class="nx">name</span><span class="p">))</span>
+      <span class="nv">project: </span><span class="nx">project</span>
+    <span class="nv">path = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="s2">&quot;#{name}.coffee&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">new</span> <span class="nx">Template</span><span class="p">(</span><span class="nx">template</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">values</span><span class="p">)).</span><span class="nx">write</span><span class="p">()</span>
+    <span class="nx">@klassSpec</span><span class="p">(</span><span class="nx">project</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span>
+  
+  <span class="nv">klassSpec: </span><span class="nf">(project, name) -&gt;</span>
+    <span class="k">return</span> <span class="nx">unless</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">existsSync</span><span class="p">(</span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;specs&#39;</span><span class="p">))</span>
+    <span class="nv">template = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;templates&#39;</span><span class="p">,</span> <span class="s1">&#39;spec.class.coffee&#39;</span><span class="p">)</span>
+    <span class="nv">values =</span>
+      <span class="nv">name: </span><span class="nx">AstroJS</span><span class="p">.</span><span class="nx">camelize</span><span class="p">(</span><span class="nx">fd</span><span class="p">.</span><span class="nx">basename</span><span class="p">(</span><span class="nx">name</span><span class="p">))</span>
+      <span class="nv">project: </span><span class="nx">project</span>
+    <span class="nv">path = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;specs&#39;</span><span class="p">,</span> <span class="s2">&quot;#{name}.coffee&quot;</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">new</span> <span class="nx">Template</span><span class="p">(</span><span class="nx">template</span><span class="p">,</span> <span class="nx">path</span><span class="p">,</span> <span class="nx">values</span><span class="p">)).</span><span class="nx">write</span><span class="p">()</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Spin up a local server for testing</p></div></div><div class="code"><div class="wrapper">  <span class="nv">server: </span><span class="o">=&gt;</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">ansi</span><span class="p">(</span><span class="s1">&#39;\tstarting server&#39;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
+    <span class="nv">name    = </span><span class="nx">AstroJS</span><span class="p">.</span><span class="nx">getProjectName</span><span class="p">()</span>
+    <span class="nv">curdir  = </span><span class="nx">process</span><span class="p">.</span><span class="nx">cwd</span><span class="p">()</span>
+    <span class="nv">port    = </span><span class="k">if</span> <span class="nx">argv</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">]</span><span class="o">?</span> <span class="k">then</span> <span class="nx">argv</span><span class="p">[</span><span class="s1">&#39;port&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">8000</span>
+    </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Strata web server</p></div></div><div class="code"><div class="wrapper">    <span class="nx">strata</span><span class="p">.</span><span class="nx">use</span> <span class="nx">strata</span><span class="p">.</span><span class="nx">commonLogger</span>
+    <span class="nx">strata</span><span class="p">.</span><span class="nx">use</span> <span class="nx">strata</span><span class="p">.</span><span class="nx">contentType</span><span class="p">,</span> <span class="s1">&#39;text/html&#39;</span>
+    <span class="nx">strata</span><span class="p">.</span><span class="nx">use</span> <span class="nx">strata</span><span class="p">.</span><span class="nx">contentLength</span>
+    <span class="nx">strata</span><span class="p">.</span><span class="nx">use</span> <span class="nx">strata</span><span class="p">.</span><span class="nx">file</span><span class="p">,</span> <span class="nx">curdir</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Build the module on request</p></div></div><div class="code"><div class="wrapper">    <span class="nx">strata</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;/module.js&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">env</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="o">=&gt;</span>
+      
+      <span class="nv">root = </span><span class="nx">process</span><span class="p">.</span><span class="nx">cwd</span><span class="p">()</span>
+      <span class="nv">pkg = </span><span class="nx">require</span> <span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s1">&#39;package.json&#39;</span><span class="p">)</span>
+      
+      <span class="nx">unless</span> <span class="nx">pkg</span><span class="p">[</span><span class="s1">&#39;_dependencyOrder&#39;</span><span class="p">]</span><span class="o">?</span>
+        <span class="nx">process</span><span class="p">.</span><span class="nx">stderr</span><span class="p">.</span><span class="nx">write</span> <span class="s2">&quot;ERROR: The dependency order must be specified in package.json\n&quot;</span>
+        <span class="k">return</span>
+      
+      <span class="nv">order = </span><span class="nx">pkg</span><span class="p">[</span><span class="s1">&#39;_dependencyOrder&#39;</span><span class="p">]</span>
+      <span class="nv">coffeeSource = </span><span class="s2">&quot;&quot;</span>
+      <span class="k">for</span> <span class="nx">dep</span> <span class="k">in</span> <span class="nx">order</span>
+        <span class="nv">currentFile = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="nx">root</span><span class="p">,</span> <span class="s1">&#39;src&#39;</span><span class="p">,</span> <span class="s2">&quot;#{dep}.coffee&quot;</span><span class="p">)</span>
+        <span class="nx">coffeeSource</span> <span class="o">+=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">currentFile</span><span class="p">)</span>
+        <span class="nx">coffeeSource</span> <span class="o">+=</span> <span class="s2">&quot;\n&quot;</span>
+      <span class="nv">source = </span><span class="nx">cs</span><span class="p">.</span><span class="nx">compile</span><span class="p">(</span><span class="nx">coffeeSource</span><span class="p">)</span>
+      
+      <span class="nx">callback</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/javascript&quot;</span>
+      <span class="p">,</span> <span class="nx">source</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Build the specs on request</p></div></div><div class="code"><div class="wrapper">    <span class="nx">strata</span><span class="p">.</span><span class="nx">get</span> <span class="s1">&#39;/specs.js&#39;</span><span class="p">,</span> <span class="nf">(env, callback) -&gt;</span>
+      </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Concatenate coffeescript specs</p></div></div><div class="code"><div class="wrapper">      <span class="nv">coffeeSource = </span><span class="s2">&quot;&quot;</span>
+      <span class="nv">files = </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readdirSync</span><span class="p">(</span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;specs&#39;</span><span class="p">))</span>
+      <span class="k">for</span> <span class="nx">f</span> <span class="k">in</span> <span class="nx">files</span>
+        <span class="k">continue</span> <span class="nx">unless</span> <span class="nx">f</span><span class="p">.</span><span class="nx">match</span> <span class="sr">/\.coffee$/i</span>
+        <span class="nv">currentFile = </span><span class="nx">fd</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="s1">&#39;specs&#39;</span><span class="p">,</span> <span class="nx">f</span><span class="p">)</span>
+        <span class="nx">coffeeSource</span> <span class="o">+=</span> <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">currentFile</span><span class="p">)</span>
+      </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Compile coffeescript</p></div></div><div class="code"><div class="wrapper">      <span class="nv">source = </span><span class="nx">cs</span><span class="p">.</span><span class="nx">compile</span><span class="p">(</span><span class="nx">coffeeSource</span><span class="p">)</span>
+      
+      <span class="nx">callback</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;text/javascript&quot;</span>
+      <span class="p">,</span> <span class="nx">source</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Server defaults to test directory</p></div></div><div class="code"><div class="wrapper">    <span class="nx">strata</span><span class="p">.</span><span class="nx">use</span> <span class="nx">strata</span><span class="p">.</span><span class="nx">file</span><span class="p">,</span> <span class="s1">&#39;./test&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;SpecRunner.html&#39;</span><span class="p">]</span>
+    <span class="nx">strata</span><span class="p">.</span><span class="nx">run</span>
+      <span class="nv">port: </span><span class="nx">port</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Build the project</p></div></div><div class="code"><div class="wrapper">  <span class="nv">build: </span><span class="o">-&gt;</span> <span class="nx">spawn</span> <span class="s1">&#39;cake&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">]</span>
+  </div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Generate documentation using groc</p></div></div><div class="code"><div class="wrapper">  <span class="nv">docs: </span><span class="o">-&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Check if in project directory</p></div></div><div class="code"><div class="wrapper">    <span class="k">return</span> <span class="nx">unless</span> <span class="nx">AstroJS</span><span class="p">.</span><span class="nx">inProjectDirectory</span><span class="p">()</span>
+    
+    <span class="nv">name = </span><span class="nx">AstroJS</span><span class="p">.</span><span class="nx">getProjectName</span><span class="p">()</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">ansi</span><span class="p">(</span><span class="s2">&quot;\tGenerating documentation for #{name}&quot;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
+    
+    <span class="nv">grocJob = </span><span class="nx">spawn</span><span class="p">(</span><span class="s1">&#39;groc&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;README.md&#39;</span><span class="p">,</span> <span class="s1">&#39;src/*.coffee&#39;</span><span class="p">])</span>
+    <span class="nx">grocJob</span><span class="p">.</span><span class="nx">stderr</span><span class="p">.</span><span class="kc">on</span> <span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="nf">(data) -&gt;</span>
+      <span class="nx">process</span><span class="p">.</span><span class="nx">stderr</span><span class="p">.</span><span class="nx">write</span> <span class="nx">data</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span>
+    <span class="nx">grocJob</span><span class="p">.</span><span class="nx">stdout</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="nf">(data) -&gt;</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">data</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span>
+    <span class="nx">grocJob</span><span class="p">.</span><span class="kc">on</span> <span class="s1">&#39;exit&#39;</span><span class="p">,</span> <span class="nf">(code) -&gt;</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="nx">ansi</span><span class="p">(</span><span class="s2">&quot;\tcreated documention for #{name}&quot;</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span>
+  
+  <span class="nv">exec: </span><span class="nf">(command = argv._[0]) -&gt;</span>
+    <span class="nv">name = </span><span class="nx">argv</span><span class="p">.</span><span class="nx">_</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">switch</span> <span class="nx">command</span>
+      <span class="k">when</span> <span class="s1">&#39;new&#39;</span>
+        <span class="nx">help</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">name</span>
+        <span class="err">@</span><span class="p">[</span><span class="s1">&#39;new&#39;</span><span class="p">](</span><span class="nx">name</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s1">&#39;class&#39;</span>
+        <span class="nx">help</span><span class="p">()</span> <span class="nx">unless</span> <span class="nx">name</span>
+        <span class="err">@</span><span class="p">[</span><span class="s1">&#39;klass&#39;</span><span class="p">](</span><span class="nx">name</span><span class="p">)</span>
+      <span class="k">when</span> <span class="s1">&#39;server&#39;</span>
+        <span class="err">@</span><span class="p">[</span><span class="s1">&#39;server&#39;</span><span class="p">]()</span>
+      <span class="k">when</span> <span class="s1">&#39;build&#39;</span>
+        <span class="err">@</span><span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">]()</span>
+      <span class="k">when</span> <span class="s1">&#39;docs&#39;</span>
+        <span class="err">@</span><span class="p">[</span><span class="s1">&#39;docs&#39;</span><span class="p">]()</span>
+      <span class="k">else</span>
+        <span class="nx">help</span><span class="p">()</span>
+
+<span class="nv">module.exports = </span><span class="nx">AstroJS</span></div></div></div></div></body></html>
