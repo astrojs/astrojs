@@ -121,6 +121,7 @@ class AstroJS
       for dep in order
         currentFile = fd.join(root, 'src', "#{dep}.coffee")
         coffeeSource += fs.readFileSync(currentFile)
+        coffeeSource += "\n"
       source = cs.compile(coffeeSource)
       
       callback 200,
