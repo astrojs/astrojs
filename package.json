@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/astrojs/astrojs.app.git"
+    "url": "git://github.com/astrojs/astrojs.git"
   },
   "author": "Amit Kapadia <amit@zooniverse.org>",
   "bin": {"astrojs": "./bin/astrojs"},
