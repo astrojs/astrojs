@@ -1,7 +1,7 @@
 astrojs
 =======
 
-astrojs is a project to develop and consolidate javascript libraries for astronomical applications.  Similar to the [astropy](http://www.astropy.org/) project, astrojs attempts to gather useful libraries under a single namespace, so they may become shared resources to the astronomical community.  There are many codes floating around the web, which if they were consolidated in a central location, would be of much greater value.
+astrojs is a project to develop and consolidate javascript libraries for astronomical applications.  Similar to the [astropy](http://www.astropy.org/) project, astrojs attempts to gather useful libraries under a single namespace so they may become shared resources to the astronomical community.  There are many codes floating around the web, which if they were consolidated in a central location, would be of much greater value.
 
 If you have a javascript resource that you would like to share, please contact [Amit Kapadia](amit@zooniverse.org).
 
@@ -28,7 +28,7 @@ To create an astrojs project run
 
     astrojs new [project name]
 
-This will generate the following project files under a directory named by [project name]:
+This will generate the following project files under a directory named by `[project name]`:
 
     Cakefile
     index.js
@@ -47,7 +47,7 @@ This will generate the following project files under a directory named by [proje
       |----specs/
 
 ### generating a new class
-Javascript is a prototype-based language.  However a class-like structure can be emulated using particular development patterns.  Use of this modules means that the developer is adopting a module pattern for library development.  Executing
+Javascript is a prototype-based language, however a class-like structure can be emulated using particular development patterns.  Use of this modules means that the developer is adopting a module pattern for library development.  Executing
 
     astrojs new [class name]
 
@@ -65,7 +65,7 @@ This module encourages development to occur in a modular fashion.  Often develop
 
     astrojs build
 
-concatenates all files in the src directory, and provides the final project in the lib directory.  It is important to specify the dependency order using the key "_dependencyOrder" in package.json.
+concatenates all files in the `src` directory, and provides the final product in the `lib` directory.  It is important to specify the dependency order using the key `_dependencyOrder` in package.json.
 
 ### example
 For an example of using this module for development, please refer to the [fitsjs](https://github.com/astrojs/fitsjs) library.
