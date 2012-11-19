@@ -1,6 +1,6 @@
 fs        = require('fs')
 fd        = require('path')
-cs        = require('coffee-script')
+cs        = require 'coffee-script'
 strata    = require('strata')
 optimist  = require('optimist')
 {spawn}   = require('child_process')
@@ -106,26 +106,44 @@ class AstroJS
     strata.use strata.contentLength
     strata.use strata.file, curdir
 
-    strata.get '/specs.js', (env, callback) =>
-      @build()  # Build module
+    # Build the module on request
+    strata.get '/module.js', (env, callback) =>
       
-      console.log ansi('\tbuilding specs', 'green')
-      coffee = spawn('coffee', ['-c', '-o', 'test/specs', 'test/specs'])
-      coffee.stderr.on 'data', (data) ->
-        process.stderr.write data.toString()
-      coffee.stdout.on 'data', (data) ->
-        console.log data.toString()
-      coffee.on 'exit', (code) ->
-        if code is 0
-          files = fs.readdirSync(fd.join('test', 'specs'))
-          source = ""
-          for f in files
-            if f.match /\.js$/i
-              currentFile = fd.join('test', 'specs', f)
-              source += fs.readFileSync(currentFile)
-          callback 200,
-            "Content-Type": "text/javascript"
-          , source
+      root = process.cwd()
+      pkg = require fd.join(root, 'package.json')
+      
+      unless pkg['_dependencyOrder']?
+        process.stderr.write "ERROR: The dependency order must be specified in package.json\n"
+        return
+      
+      order = pkg['_dependencyOrder']
+      coffeeSource = ""
+      for dep in order
+        currentFile = fd.join(root, 'src', "#{dep}.coffee")
+        coffeeSource += fs.readFileSync(currentFile)
+      source = cs.compile(coffeeSource)
+      
+      callback 200,
+        "Content-Type": "text/javascript"
+      , source
+
+    # Build the specs on request
+    strata.get '/specs.js', (env, callback) ->
+      
+      # Concatenate coffeescript specs
+      coffeeSource = ""
+      files = fs.readdirSync(fd.join('test', 'specs'))
+      for f in files
+        continue unless f.match /\.coffee$/i
+        currentFile = fd.join('test', 'specs', f)
+        coffeeSource += fs.readFileSync(currentFile)
+      
+      # Compile coffeescript
+      source = cs.compile(coffeeSource)
+      
+      callback 200,
+        "Content-Type": "text/javascript"
+      , source
 
     # Server defaults to test directory
     strata.use strata.file, './test', ['SpecRunner.html']
