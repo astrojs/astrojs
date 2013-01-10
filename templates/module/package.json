@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "dependencies": { 
   },
+  "devDependencies": {
+    "coffee-script" : "1.4.x"
+  },
   "_dependencyOrder": [
     "{{name}}"
   ]
