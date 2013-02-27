@@ -1,12 +1,16 @@
-fs        = require('fs')
-fd        = require('path')
+fs        = require 'fs'
+fd        = require 'path'
+{spawn}   = require 'child_process'
+
 cs        = require 'coffee-script'
-strata    = require('strata')
-optimist  = require('optimist')
-{spawn}   = require('child_process')
-Template  = require('./template')
-ansi      = require('./ansi')
-groc      = require('groc')
+strata    = require 'strata'
+optimist  = require 'optimist'
+UglifyJS  = require 'uglify-js'
+groc      = require 'groc'
+
+Template  = require './template'
+ansi      = require './ansi'
+
 
 argv = optimist.usage([
   '  usage: astrojs COMMAND',
@@ -16,6 +20,7 @@ argv = optimist.usage([
   '    build    build the module (this is an alias for `cake build`)'
 ].join("\n"))
 .alias('p', 'port')
+.alias('m', 'minify')
 .argv
 
 help = ->
@@ -95,10 +100,14 @@ class AstroJS
   
   # Spin up a local server for testing
   server: =>
-    console.log ansi('\tstarting server', 'green')
     name    = AstroJS.getProjectName()
     curdir  = process.cwd()
     port    = if argv['port']? then argv['port'] else 8000
+    minify  = if argv['minify']? then true else false
+    
+    root = process.cwd()
+    pkg = require fd.join(root, 'package.json')
+    console.log ansi("Running astrojs 0.1.2", 'yellow')
     
     # Strata web server
     strata.use strata.commonLogger
@@ -106,11 +115,8 @@ class AstroJS
     strata.use strata.contentLength
     strata.use strata.file, curdir
 
-    # Build the module on request
+    # Build the library on request
     strata.get '/module.js', (env, callback) =>
-      
-      root = process.cwd()
-      pkg = require fd.join(root, 'package.json')
       
       unless pkg['_dependencyOrder']?
         process.stderr.write "ERROR: The dependency order must be specified in package.json\n"
@@ -123,6 +129,14 @@ class AstroJS
         coffeeSource += fs.readFileSync(currentFile)
         coffeeSource += "\n"
       source = cs.compile(coffeeSource)
+      
+      # Minify code if flag is specified
+      if minify
+        opts =
+          fromString: true
+          mangle: true
+        result = UglifyJS.minify(source, opts)
+        source = result.code
       
       callback 200,
         "Content-Type": "text/javascript"
