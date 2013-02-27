@@ -1,13 +1,13 @@
 astrojs
 =======
 
-astrojs is a project to develop and consolidate javascript libraries for astronomical applications.  Similar to the [astropy](http://www.astropy.org/) project, astrojs attempts to gather useful libraries under a single namespace so they may become shared resources to the astronomical community.  There are many codes floating around the web, which if they were consolidated in a central location, would be of much greater value.
+astrojs is a project to develop and consolidate javascript libraries for astronomical applications.  Similar to the [astropy](http://www.astropy.org/) project, astrojs is gathering useful libraries under a single namespace so they may become shared resources to the astronomical community.  There are many codes floating around the web, which if they were consolidated in a central location, would be of much greater value.
 
-If you have a javascript resource that you would like to share, please contact [Amit Kapadia](amit@zooniverse.org).
+If you have a javascript resource that you would like to contribute, please contact [Amit Kapadia](amit@zooniverse.org).
 
-astrojs module
---------------
-This module provides a scaffold and convenience functions for developing under the javascript astro namespace.  It is most useful when developing astrojs libraries using the [coffeescript](coffeescript.org) language.  A future release will support development for pure javascript.  There are four functions available from the command line.
+astrojs library
+---------------
+This library is a development tool that provides a library template and convenience functions for developing under the javascript `astro` namespace.  It is most useful when developing astrojs libraries using the [coffeescript](coffeescript.org) language.  A future release will support development for pure javascript libraries.  There are four functions available from the command line.
 
     astrojs new [project name]
     astrojs class [class name]
@@ -58,7 +58,17 @@ Development always requires testing.  When developing an astrojs module, it is e
 
     astrojs server
     
-will spin up a local testing server at [http://0.0.0.0:8000](http://0.0.0.0:8000).  This is useful when unit tests require data that must be accessed on the same domain as the script (e.g. ajax requests to json or binary files).
+will spin up a local testing server at [http://0.0.0.0:8000](http://0.0.0.0:8000).  This is useful when tests require data that must be accessed on the same domain as the script (e.g. ajax requests for json or binary files).
+
+This command support two options.
+
+    astrojs server -p 8001
+    
+allows a port to be specified, and
+
+    astrojs server -m
+
+minifies the code, which is useful in some development edge cases.
 
 ### building an astrojs project
 This module encourages development to occur in a modular fashion.  Often development of libraries can quickly become overwhelming.  Good practice encourages codes to be modulated into separate files, however this requires a build step when delivering the final javascript library.  Calling
