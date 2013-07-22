@@ -6,7 +6,6 @@ cs        = require 'coffee-script'
 strata    = require 'strata'
 optimist  = require 'optimist'
 UglifyJS  = require 'uglify-js'
-groc      = require 'groc'
 
 Template  = require './template'
 ansi      = require './ansi'
@@ -107,7 +106,7 @@ class AstroJS
     
     root = process.cwd()
     pkg = require fd.join(root, 'package.json')
-    console.log ansi("Running astrojs 0.1.2", 'yellow')
+    console.log ansi("Running astrojs 0.1.3", 'yellow')
     
     # Strata web server
     strata.use strata.commonLogger
@@ -167,22 +166,6 @@ class AstroJS
   
   # Build the project
   build: -> spawn 'cake', ['build']
-  
-  # Generate documentation using groc
-  docs: ->
-    # Check if in project directory
-    return unless AstroJS.inProjectDirectory()
-    
-    name = AstroJS.getProjectName()
-    console.log ansi("\tGenerating documentation for #{name}", 'green')
-    
-    grocJob = spawn('groc', ['README.md', 'src/*.coffee'])
-    grocJob.stderr.on "data", (data) ->
-      process.stderr.write data.toString()
-    grocJob.stdout.on 'data', (data) ->
-      console.log data.toString()
-    grocJob.on 'exit', (code) ->
-      console.log ansi("\tcreated documention for #{name}", 'green')
   
   exec: (command = argv._[0]) ->
     name = argv._[1]
